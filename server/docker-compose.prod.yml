@@ -1,0 +1,49 @@
+version: '3.9'
+
+services:
+  # MongoDB service
+  mongo_db:
+    container_name: dealership_db
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - dealership_network
+
+  # Node.js API service
+  api:
+    container_name: dealership_api
+    image: rajdipdevops/dealership-nodeapi:latest
+    ports:
+      - "3030:3030"
+    depends_on: 
+      - mongo_db
+    restart: always
+    networks:
+      - dealership_network
+
+  # Django web application
+  web:
+    container_name: dealership_web
+    image: rajdipdevops/dealership-app:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - backend_url=http://api:3030
+      - sentiment_analyzer_url=http://localhost:5050/
+    depends_on:
+      - api
+      - mongo_db
+    restart: always
+    networks:
+      - dealership_network
+
+volumes:
+  mongo_data:
+
+networks:
+  dealership_network:
+    driver: bridge 
